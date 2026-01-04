@@ -100,6 +100,22 @@
             transform: translateY(-3px);
             color: #1877F2; 
         }
+
+        .image-container {
+            width: 100%;
+            max-height: 250px;
+            overflow: hidden;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: none; 
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -133,10 +149,15 @@
             
             <!-- Question Card -->
             <div id="game-card" class="glass-card rounded-3xl p-8 mb-8 border border-white">
+                <!-- Vùng chứa hình ảnh -->
+                <div id="image-wrapper" class="image-container">
+                    <img id="question-image" src="" alt="Minh họa Kanji">
+                </div>
+
                 <div class="mb-8">
                     <span class="bg-indigo-50 text-indigo-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter border border-indigo-100">Cấp độ N5</span>
                     <h2 id="vietnamese-sentence" class="text-2xl md:text-4xl font-extrabold text-slate-800 mt-4 leading-tight">
-                        Nhấn Bắt đầu để luyện tập...
+                        Chào mừng bạn đến với Kanji Pro!
                     </h2>
                 </div>
 
@@ -228,255 +249,53 @@
     <script>
         /**
          * KHO DỮ LIỆU CÂU HỎI (QUIZ POOL)
-         * Bạn có thể nạp thêm 1000 câu vào mảng này.
+         * Tổng hợp hàng loạt câu hỏi cho Kanji N5.
          */
-        const QUIZ_POOL = [ 
+        const QUIZ_POOL = [
             // --- NHÓM SỐ ĐẾM & TIỀN TỆ ---
             { vi: "Có một người ở đó.", ja: "<span>一人</span>の<span>人</span>がいます。", hira: "ひとり の ひと が います。", kanji: [{ char: "一", hanviet: "NHẤT", mean: "Số 1", on: "イチ", kun: "ひと・つ" }, { char: "人", hanviet: "NHÂN", mean: "Người", on: "ジン", kun: "ひと" }] },
             { vi: "Hãy cho tôi hai cái bánh.", ja: "お菓子を<span>二</span>つください。", hira: "おかし を ふたつ ください。", kanji: [{ char: "二", hanviet: "NHỊ", mean: "Số 2", on: "ニ", kun: "ふた・つ" }] },
-            { vi: "Ba người bạn đi chơi.", ja: "<span>三</span><span>人</span>の<span>友</span>だちと遊びます。", hira: "さんにん の ともだち と あそびます。", kanji: [{ char: "三", hanviet: "TAM", mean: "Số 3", on: "サン", kun: "みっ・つ" }, { char: "友", hanviet: "HỮU", mean: "Bạn bè", on: "ユウ", kun: "とも" }] },
+            { vi: "Gia đình tôi có ba người.", ja: "<span>三</span><span>人</span><span>家族</span>です。", hira: "さんにん かぞく です。", kanji: [{ char: "三", hanviet: "TAM", mean: "Số 3", on: "サン", kun: "みっ・つ" }] },
             { vi: "Một năm có bốn mùa.", ja: "<span>一年</span>には<span>四</span>つの季節があります。", hira: "いちねん には よっつ の きせつ が あります。", kanji: [{ char: "四", hanviet: "TỨ", mean: "Số 4", on: "シ", kun: "よっ・つ" }, { char: "年", hanviet: "NIÊN", mean: "Năm", on: "ネン", kun: "とし" }] },
-            { vi: "Tôi có năm quyển sách.", ja: "<span>五</span><span>本</span>の<span>本</span>があります。", hira: "ごほん の ほん が あります。", kanji: [{ char: "五", hanviet: "NGŨ", mean: "Số 5", on: "ゴ", kun: "いつ・つ" }, { char: "本", hanviet: "BẢN", mean: "Sách", on: "ホン", kun: "もto" }] },
+            { vi: "Tôi có năm quyển sách.", ja: "<span>五</span><span>本</span>の<span>本</span>があります。", hira: "ごほん の ほん が あります。", kanji: [{ char: "五", hanviet: "NGŨ", mean: "Số 5", on: "ゴ", kun: "いつ・つ" }, { char: "本", hanviet: "BẢN", mean: "Sách", on: "ホン", kun: "もと" }] },
             { vi: "Sáu giờ thức dậy.", ja: "<span>六時</span>に<span>起</span>きます。", hira: "ろくじ に おきます。", kanji: [{ char: "六", hanviet: "LỤC", mean: "Số 6", on: "ロク", kun: "むっ・つ" }] },
-            { vi: "Bảy ngày một tuần.", ja: "<span>七</span><span>日</span>で<span>一</span><span>週間</span>です。", hira: "なのか で いっしゅうかん です。", kanji: [{ char: "七", hanviet: "THẤT", mean: "Số 7", on: "シチ", kun: "なな・つ" }] },
-            { vi: "Tám nghìn Yên.", ja: "<span>八</span><span>千</span><span>円</span>です。", hira: "はっせん えん です。", kanji: [{ char: "八", hanviet: "BÁT", mean: "Số 8", on: "ハチ", kun: "やっ・つ" }, { char: "千", hanviet: "THIÊN", mean: "Nghìn", on: "セン", kun: "ち" }, { char: "円", hanviet: "VIÊN", mean: "Yên / Tròn", on: "エン", kun: "まる" }] },
+            { vi: "Bảy ngày một tuần.", ja: "<span>七</span><span>日</span>で<span>一</span><span>週間</span>です。", hira: "なのか で いっしゅうかん です。", kanji: [{ char: "七", hanviet: "THẤT", mean: "Số 7", on: "シチ", kun: "な나・つ" }] },
+            { vi: "Tám nghìn Yên.", ja: "<span>八</span><span>千</span><span>円</span>입니다。", hira: "はっせん えん です。", kanji: [{ char: "八", hanviet: "BÁT", mean: "Số 8", on: "ハチ", kun: "やっ・つ" }, { char: "千", hanviet: "THIÊN", mean: "Nghìn", on: "セン", kun: "ち" }, { char: "円", hanviet: "VIÊN", mean: "Yên / Tròn", on: "エン", kun: "まる" }] },
             { vi: "Chín giờ bắt đầu làm.", ja: "<span>九時</span>に<span>仕事</span>が<span>始</span>まります。", hira: "くじ に しごと が はじまります。", kanji: [{ char: "九", hanviet: "CỬU", mean: "Số 9", on: "キュウ", kun: "ここの・つ" }] },
             { vi: "Mười ngày nghỉ hè.", ja: "<span>十</span><span>日</span><span>間</span>の<span>夏休</span>みです。", hira: "とおか かん の なつやすみ です。", kanji: [{ char: "十", hanviet: "THẬP", mean: "Số 10", on: "ジュウ", kun: "とお" }] },
-            { vi: "Một vạn Yên.", ja: "<span>一</span><span>万</span><span>円</span>を<span>出</span>します。", hira: "いちまん えん を だします。", kanji: [{ char: "万", hanviet: "VẠN", mean: "Mười nghìn", on: "マン", kun: "-" }] },
 
-            // --- NHÓM THỜI GIAN ---
-            { vi: "Bây giờ là mấy giờ?", ja: "<span>今</span> là <span>何時</span>ですか。", hira: "いま は なんじ ですか。", kanji: [{ char: "今", hanviet: "KIM", mean: "Bây giờ", on: "コン", kun: "いま" }, { char: "何", hanviet: "HÀ", mean: "Cái gì / Mấy", on: "カ", kun: "なに / なん" }] },
-            { vi: "Hôm nay là ngày mấy?", ja: "<span>今日</span>は<span>何</span><span>日</span>ですか。", hira: "きょう は なんにち ですか。", kanji: [{ char: "日", hanviet: "NHẬT", mean: "Ngày / Mặt trời", on: "ニチ", kun: "ひ" }] },
+            // --- NHÓM THỜI GIAN & THỨ ---
+            { vi: "Hôm nay là ngày mấy?", ja: "<span>今日</span>は<span>何</span><span>日</span>ですか。", hira: "きょう は なん にち ですか。", kanji: [{ char: "今", hanviet: "KIM", mean: "Bây giờ", on: "コン", kun: "いま" }, { char: "日", hanviet: "NHẬT", mean: "Ngày / Mặt trời", on: "ニチ", kun: "ひ" }] },
+            { vi: "Thứ Hai đi làm.", ja: "<span>月曜日</span>に働きま<span>す</span>。", hira: "げつようび に はたらきます。", kanji: [{ char: "月", hanviet: "NGUYỆT", mean: "Tháng / Mặt trăng", on: "ゲツ", kun: "つき" }, { char: "曜", hanviet: "DIỆU", mean: "Thứ (trong tuần)", on: "ヨウ", kun: "-" }] },
             { vi: "Sáng nay trời mưa.", ja: "<span>今朝</span>は<span>雨</span>でした。", hira: "けさ は あめ でした。", kanji: [{ char: "雨", hanviet: "VŨ", mean: "Mưa", on: "ウ", kun: "あめ" }] },
             { vi: "Sáu giờ sáng (AM).", ja: "<span>午前</span><span>六時</span>です。", hira: "ごぜん ろくじ です。", kanji: [{ char: "午", hanviet: "NGỌ", mean: "Trưa", on: "ゴ", kun: "-" }, { char: "前", hanviet: "TIỀN", mean: "Trước", on: "ゼン", kun: "まえ" }] },
-            { vi: "Ba giờ chiều (PM).", ja: "<span>午後</span><span>三時</span>です。", hira: "ごご さんじ です。", kanji: [{ char: "後", hanviet: "HẬU", mean: "Sau", on: "ゴ / コウ", kun: "あと / うしろ" }] },
-            { vi: "Năm nay tôi 20 tuổi.", ja: "<span>今年</span><span>二十</span><span>歳</span>です。", hira: "ことし はたち です。", kanji: [{ char: "年", hanviet: "NIÊN", mean: "Năm", on: "ネン", kun: "とし" }] },
-            { vi: "Tháng này bận rộn.", ja: "<span>今月</span>は<span>忙</span>しいです。", hira: "こんげつ は いそがしい です。", kanji: [{ char: "月", hanviet: "NGUYỆT", mean: "Tháng / Mặt trăng", on: "ゲツ", kun: "つき" }] },
+            { vi: "Ba giờ chiều (PM).", ja: "<span>午後</span><span>三時</span>입니다。", hira: "ごご さんじ です。", kanji: [{ char: "後", hanviet: "HẬU", mean: "Sau", on: "ゴ / コウ", kun: "あと / うしろ" }] },
 
             // --- NHÓM GIA ĐÌNH & CON NGƯỜI ---
             { vi: "Ba tôi là bác sĩ.", ja: "私の<span>父</span>は<span>医者</span>です。", hira: "わたし の ちち は いしゃ です。", kanji: [{ char: "父", hanviet: "PHỤ", mean: "Bố (của mình)", on: "フ", kun: "ちち" }] },
             { vi: "Mẹ tôi nấu ăn ngon.", ja: "<span>母</span>の<span>料理</span>は<span>美味</span>しいです。", hira: "はは の りょうり は おいしい です。", kanji: [{ char: "母", hanviet: "MẪU", mean: "Mẹ (của mình)", on: "ボ", kun: "はは" }] },
             { vi: "Người con gái đó xinh đẹp.", ja: "あの<span>女</span>の<span>人</span>は<span>綺麗</span>です。", hira: "あの おんな の ひと は きれい です。", kanji: [{ char: "女", hanviet: "NỮ", mean: "Phụ nữ", on: "ジョ", kun: "おんな" }] },
-            { vi: "Người đàn ông đó cao.", ja: "あの<span>男</span>の<span>人</span>は<span>背</span>が<span>高</span>いです。", hira: "あの おとこ の ひと は せ が たかい です。", kanji: [{ char: "男", hanviet: "NAM", mean: "Đàn ông", on: "ダン", kun: "おとこ" }] },
-            { vi: "Học sinh đi đến trường.", ja: "<span>学生</span>が<span>学校</span>へ<span>行</span>きます。", hira: "がくせい が がっこう へ いきます。", kanji: [{ char: "学", hanviet: "HỌC", mean: "Học tập", on: "ガク", kun: "まな・ぶ" }, { char: "生", hanviet: "SINH", mean: "Sống / Sinh ra", on: "セイ", kun: "う・まれる" }, { char: "校", hanviet: "HIỆU", mean: "Trường học", on: "コウ", kun: "-" }] },
-            { vi: "Thầy giáo đang nói chuyện.", ja: "<span>先生</span>が<span>話</span>しています。", hira: "せんせい が はなして います。", kanji: [{ char: "先", hanviet: "TIÊN", mean: "Trước", on: "セン", kun: "さき" }] },
-            { vi: "Đứa trẻ đang khóc.", ja: "<span>子</span>どもが<span>泣</span>いています。", hira: "こども が ないて います。", kanji: [{ char: "子", hanviet: "TỬ", mean: "Con cái", on: "シ", kun: "こ" }] },
+            { vi: "Học sinh đi đến trường.", ja: "<span>学生</span>が<span>学校</span>へ<span>行</span>きます。", hira: "がくせい が がっこう へ いきます。", kanji: [{ char: "学", hanviet: "HỌC", mean: "Học tập", on: "ガク", kun: "まな・ぶ" }, { char: "校", hanviet: "HIỆU", mean: "Trường học", on: "コウ", kun: "-" }] },
 
-            // --- NHÓM THIÊN NHIÊN & VẬT CHẤT ---
-            { vi: "Núi Phú Sĩ.", ja: "<span>富士山</span>です。", hira: "ふじさん です。", kanji: [{ char: "山", hanviet: "SƠN", mean: "Núi", on: "サン", kun: "やま" }] },
-            { vi: "Sông này dài.", ja: "この<span>川</span>は<span>長</span>いです。", hira: "この かわ は ながい です。", kanji: [{ char: "川", hanviet: "XUYÊN", mean: "Sông", on: "セン", kun: "かわ" }] },
-            { vi: "Nước lạnh.", ja: "<span>水</span>が<span>冷</span>たいです。", hira: "みず が つめたい です。", kanji: [{ char: "水", hanviet: "THỦY", mean: "Nước", on: "スイ", kun: "みず" }] },
-            { vi: "Hoa anh đào nở.", ja: "<span>桜</span>の<span>花</span>が<span>咲</span>きました。", hira: "さくら の はな が さきました。", kanji: [{ char: "花", hanviet: "HOA", mean: "Hoa", on: "カ", kun: "はな" }] },
-            { vi: "Bầu trời xanh.", ja: "<span>青</span>い<span>天</span>気です。", hira: "あおい てんき です。", kanji: [{ char: "天", hanviet: "THIÊN", mean: "Trời", on: "テン", kun: "あま" }, { char: "気", hanviet: "KHÍ", mean: "Khí chất / Tinh thần", on: "キ", kun: "いき" }] },
-            { vi: "Cái cây to.", ja: "<span>大</span>きな<span>木</span>があります。", hira: "おおきな き が あります。", kanji: [{ char: "木", hanviet: "MỘC", mean: "Cây", on: "モク", kun: "き" }, { char: "大", hanviet: "ĐẠI", mean: "Lớn", on: "ダイ", kun: "おお・きい" }] },
-            { vi: "Đám ruộng nhỏ.", ja: "<span>小</span>さな<span>田</span>んぼです。", hira: "ちいさな たんぼ です。", kanji: [{ char: "田", hanviet: "ĐIỀN", mean: "Ruộng", on: "デン", kun: "た" }, { char: "小", hanviet: "TIỂU", mean: "Nhỏ", on: "ショウ", kun: "ちい・さい" }] },
-
-            // --- NHÓM VỊ TRÍ & PHƯƠNG HƯỚNG ---
-            { vi: "Bên trên cái bàn.", ja: "テーブルの<span>上</span>です。", hira: "テーブル の うえ です。", kanji: [{ char: "上", hanviet: "THƯỢNG", mean: "Trên", on: "ジョウ", kun: "うえ" }] },
-            { vi: "Bên dưới cái ghế.", ja: "<span>椅</span>子の<span>下</span>です。", hira: "いす の した です。", kanji: [{ char: "下", hanviet: "HẠ", mean: "Dưới", on: "カ", kun: "した" }] },
-            { vi: "Bên trái là ngân hàng.", ja: "<span>左</span>は<span>銀行</span>です。", hira: "ひだり は ぎんこう です。", kanji: [{ char: "左", hanviet: "TẢ", mean: "Bên trái", on: "サ", kun: "ひだり" }] },
-            { vi: "Bên phải là bưu điện.", ja: "<span>右</span>は<span>郵便局</span>です。", hira: "みぎ は ゆうびんきょく です。", kanji: [{ char: "右", hanviet: "HỮU", mean: "Bên phải", on: "ウ", kun: "みぎ" }] },
-            { vi: "Ở giữa hai người.", ja: "<span>二</span><span>人</span>の<span>間</span>です。", hira: "ふたり の あいだ です。", kanji: [{ char: "間", hanviet: "GIAN", mean: "Khoảng cách / Giữa", on: "カン", kun: "あいだ" }] },
-            { vi: "Phía trước nhà ga.", ja: "<span>駅</span>の<span>前</span>です。", hira: "えき の まえ です。", kanji: [{ char: "前", hanviet: "TIỀN", mean: "Trước", on: "ゼン", kun: "まえ" }] },
-            { vi: "Phía sau trường học.", ja: "<span>学校</span>の<span>後</span>ろです。", hira: "がっこう の うしろ です。", kanji: [{ char: "後", hanviet: "HẬU", mean: "Sau", on: "ゴ", kun: "うしろ" }] },
-            { vi: "Bên trong cái hộp.", ja: "<span>箱</span>の<span>中</span>です。", hira: "はこ の なか です。", kanji: [{ char: "中", hanviet: "TRUNG", mean: "Trong / Giữa", on: "チュウ", kun: "なか" }] },
-            { vi: "Bên ngoài căn nhà.", ja: "<span>家</span>の<span>外</span>です。", hira: "いえ の そと です。", kanji: [{ char: "外", hanviet: "NGOẠI", mean: "Ngoài", on: "ガイ", kun: "そと" }] },
-
-            // --- NHÓM ĐỘNG TỪ ---
+            // --- NHÓM ĐỘNG TỪ & VỊ TRÍ ---
             { vi: "Ăn cơm.", ja: "<span>ご飯</span>を<span>食</span>べます。", hira: "ごはん を たべます。", kanji: [{ char: "食", hanviet: "THỰC", mean: "Ăn", on: "ショク", kun: "た・べる" }] },
             { vi: "Uống nước.", ja: "<span>水</span>を<span>飲</span>みます。", hira: "みず を のみます。", kanji: [{ char: "飲", hanviet: "ẨM", mean: "Uống", on: "イン", kun: "の・む" }] },
             { vi: "Đọc sách.", ja: "<span>本</span>を<span>読</span>みます。", hira: "ほん を よみます。", kanji: [{ char: "読", hanviet: "ĐỘC", mean: "Đọc", on: "ドク", kun: "よ・む" }] },
-            { vi: "Viết thư.", ja: "<span>手紙</span>を<span>書</span>きます。", hira: "てがみ を かきます。", kanji: [{ char: "書", hanviet: "THƯ", mean: "Viết", on: "ショ", kun: "か・く" }] },
-            { vi: "Xem phim.", ja: "<span>映画</span>を<span>見</span>ます。", hira: "えいが を みます。", kanji: [{ char: "見", hanviet: "KIẾN", mean: "Nhìn / Xem", on: "ケン", kun: "み・る" }] },
+            { vi: "Bên trên cái bàn.", ja: "テーブルの<span>上</span>です。", hira: "テーブル の うえ です。", kanji: [{ char: "上", hanviet: "THƯỢNG", mean: "Trên", on: "ジョウ", kun: "うえ" }] },
+            { vi: "Bên dưới cái ghế.", ja: "<span>椅</span>子の<span>下</span>です。", hira: "いす の した です。", kanji: [{ char: "下", hanviet: "HẠ", mean: "Dưới", on: "カ", kun: "した" }] },
+            { vi: "Vào phòng.", ja: "<span>部屋</span>に<span>入</span>ります。", hira: "へや に はいります。", kanji: [{ char: "入", hanviet: "NHẬP", mean: "Vào", on: "ニュウ", kun: "はい・る" }] },
+            { vi: "Ra khỏi công ty.", ja: "<span>会社</span>を<span>出</span>ます。", hira: "かいしゃ を でます。", kanji: [{ char: "出", hanviet: "XUẤT", mean: "Ra", on: "シュツ", kun: "で・る" }] },
+            { vi: "Mua đồ mới.", ja: "<span>新</span>しい物を<span>買</span>います。", hira: "あたらしい もの を かいます。", kanji: [{ char: "新", hanviet: "TÂN", mean: "Mới", on: "シン", kun: "あたら・しい" }, { char: "買", hanviet: "MÃI", mean: "Mua", on: "バイ", kun: "か・う" }] },
+            { vi: "Nói chuyện điện thoại.", ja: "<span>電話</span>で<span>話</span>します。", hira: "でんわ で はなします。", kanji: [{ char: "話", hanviet: "THOẠI", mean: "Nói chuyện", on: "ワ", kun: "はな・す" }] },
+            { vi: "Núi Phú Sĩ rất cao.", ja: "<span>富士山</span>はとても<span>高</span>いです。", hira: "ふじさん は とても たかい です。", kanji: [{ char: "山", hanviet: "SƠN", mean: "Núi", on: "サン", kun: "やま" }, { char: "高", hanviet: "CAO", mean: "Cao / Đắt", on: "コウ", kun: "たか・い" }] },
+            { vi: "Nhà ga lớn.", ja: "<span>大</span>きな<span>駅</span>です。", hira: "おおきな えき です。", kanji: [{ char: "駅", hanviet: "DỊCH", mean: "Nhà ga", on: "エキ", kun: "-" }, { char: "大", hanviet: "ĐẠI", mean: "Lớn", on: "ダイ", kun: "おお・きい" }] },
+            { vi: "Tôi xem tivi mỗi tối.", ja: "<span>毎晩</span>テレビを<span>見</span>ます。", hira: "まいばん てれび を みます。", kanji: [{ char: "見", hanviet: "KIẾN", mean: "Nhìn / Xem", on: "ケン", kun: "み・る" }] },
             { vi: "Nghe nhạc.", ja: "<span>音楽</span>を<span>聞</span>きます。", hira: "おんがく を ききます。", kanji: [{ char: "聞", hanviet: "VĂN", mean: "Nghe", on: "ブン", kun: "き・く" }] },
-            { vi: "Nói chuyện với bạn bè.", ja: "<span>友</span>だちと<span>話</span>します。", hira: "ともだち と はなします。", kanji: [{ char: "話", hanviet: "THOẠI", mean: "Nói chuyện", on: "ワ", kun: "はな・す" }] },
-            { vi: "Đi siêu thị.", ja: "スーパーへ<span>行</span>きます。", hira: "すーぱー へ いきます。", kanji: [{ char: "行", hanviet: "HÀNH", mean: "Đi", on: "コウ", kun: "い・く" }] },
-            { vi: "Đến trường.", ja: "<span>学校</span>へ<span>来</span>ます。", hira: "がっこう へ きます。", kanji: [{ char: "来", hanviet: "LAI", mean: "Đến", on: "ライ", kun: "く・る" }] },
-            { vi: "Ra khỏi phòng.", ja: "<span>部屋</span>を<span>出</span>ます。", hira: "へや を でます。", kanji: [{ char: "出", hanviet: "XUẤT", mean: "Ra / Xuất hiện", on: "シュツ", kun: "で・る" }] },
-            { vi: "Vào lớp học.", ja: "<span>教室</span>に<span>入</span>ります。", hira: "きょうしつ に はいります。", kanji: [{ char: "入", hanviet: "NHẬP", mean: "Vào", on: "ニュウ", kun: "はい・る" }] },
-            { vi: "Nghỉ ngơi một chút.", ja: "<span>少</span>し<span>休</span>みます。", hira: "すこし やすみます。", kanji: [{ char: "少", hanviet: "THIỂU", mean: "Ít / Một chút", on: "ショウ", kun: "すこ・し" }, { char: "休", hanviet: "HƯU", mean: "Nghỉ ngơi", on: "キュウ", kun: "やす・む" }] },
-            { vi: "Mua quyển sách mới.", ja: "<span>新</span>しい<span>本</span>を<span>買</span>います。", hira: "あたらしい ほん を かいます。", kanji: [{ char: "新", hanviet: "TÂN", mean: "Mới", on: "シン", kun: "あたら・しい" }, { char: "買", hanviet: "MÃI", mean: "Mua", on: "バイ", kun: "か・う" }] },
-
-            // --- NHÓM ĐỊA ĐIỂM & XÃ HỘI ---
-            { vi: "Nhà ga lớn.", ja: "<span>大</span>きな<span>駅</span>です。", hira: "おおきな えき です。", kanji: [{ char: "駅", hanviet: "DỊCH", mean: "Nhà ga", on: "エキ", kun: "-" }] },
-            { vi: "Con đường dài.", ja: "<span>長</span>い<span>道</span>です。", hira: "ながい みち です。", kanji: [{ char: "道", hanviet: "ĐẠO", mean: "Con đường", on: "ドウ", kun: "みち" }] },
-            { vi: "Cửa hàng nhỏ.", ja: "<span>小</span>さな<span>店</span>です。", hira: "ちいさな みせ です。", kanji: [{ char: "店", hanviet: "ĐIẾM", mean: "Cửa hàng", on: "テン", kun: "みせ" }] },
-            { vi: "Công ty của tôi.", ja: "私の<span>会社</span>です。", hira: "わたし の かいしゃ です。", kanji: [{ char: "会", hanviet: "HỘI", mean: "Gặp gỡ / Hội", on: "カイ", kun: "あ・う" }, { char: "社", hanviet: "XÃ", mean: "Xã hội / Đền thờ", on: "シャ", kun: "やしろ" }] },
-            { vi: "Đất nước Việt Nam.", ja: "ベトナムという<span>国</span>です。", hira: "べとなむ という くに です。", kanji: [{ char: "国", hanviet: "QUỐC", mean: "Đất nước", on: "コク", kun: "くに" }] }
-            // --- NHÓM SỐ ĐẾM ---
-            {
-                vi: "Có một người ở đó.",
-                ja: "<span>一人</span>の<span>人</span>がいます。",
-                hira: "ひとり の ひと が います。",
-                kanji: [
-                    { char: "一", hanviet: "NHẤT", mean: "Số 1", on: "イチ", kun: "ひと・つ" },
-                    { char: "人", hanviet: "NHÂN", mean: "Người", on: "ジン / ニン", kun: "ひと" }
-                ]
-            },
-            {
-                vi: "Hãy cho tôi hai cái này.",
-                ja: "これを<span>二</span>つください。",
-                hira: "これを ふたつ ください。",
-                kanji: [{ char: "二", hanviet: "NHỊ", mean: "Số 2", on: "ニ", kun: "ふた・つ" }]
-            },
-            {
-                vi: "Gia đình tôi có ba người.",
-                ja: "<span>三</span><span>人</span><span>家族</span>です。",
-                hira: "さんにん かぞく です。",
-                kanji: [{ char: "三", hanviet: "TAM", mean: "Số 3", on: "サン", kun: "みっ・つ" }]
-            },
-            {
-                vi: "Một năm có bốn mùa.",
-                ja: "<span>一年</span>에는<span>四</span>つの<span>季節</span>があります。",
-                hira: "いちねん には よっつ の きせつ が あります。",
-                kanji: [{ char: "四", hanviet: "TỨ", mean: "Số 4", on: "シ", kun: "よっ·つ" }]
-            },
-            {
-                vi: "Tôi đã mua năm quả táo.",
-                ja: "りんごを<span>五</span>つ<span>買</span>いました。",
-                hira: "りんごを いつつ かいました。",
-                kanji: [{ char: "五", hanviet: "NGŨ", mean: "Số 5", on: "ゴ", kun: "いつ·つ" }]
-            },
-            {
-                vi: "Bây giờ là sáu giờ.",
-                ja: "<span>今</span>は<span>六時</span>です。",
-                hira: "いま は ろくじ です。",
-                kanji: [{ char: "六", hanviet: "LỤC", mean: "Số 6", on: "ロク", kun: "むっ·つ" }]
-            },
-            {
-                vi: "Tuần sau là ngày mùng bảy.",
-                ja: "<span>来週</span>の<span>七日</span>です。",
-                hira: "らいしゅう の なのか です。",
-                kanji: [{ char: "七", hanviet: "THẤT", mean: "Số 7", on: "シチ", kun: "なな·つ" }]
-            },
-            {
-                vi: "Tám giờ rưỡi bắt đầu học.",
-                ja: "<span>八時半</span>に<span>始</span>まります。",
-                hira: "はちじはん に はじまります。",
-                kanji: [{ char: "八", hanviet: "BÁT", mean: "Số 8", on: "ハチ", kun: "やっ·つ" }]
-            },
-            {
-                vi: "Tháng chín là sinh nhật của tôi.",
-                ja: "<span>九月</span>は私の<span>誕生日</span>です。",
-                hira: "くがつ は わたし の たんじょうび です。",
-                kanji: [{ char: "九", hanviet: "CỬU", mean: "Số 9", on: "キュウ / ク", kun: "ここの·つ" }]
-            },
-            {
-                vi: "Mười giờ đi ngủ.",
-                ja: "<span>十時</span>に<span>寝</span>ます。",
-                hira: "じゅうじ に ねます。",
-                kanji: [{ char: "十", hanviet: "THẬP", mean: "Số 10", on: "ジュウ", kun: "とお" }]
-            },
-
-            // --- NHÓM THỜI GIAN & THỨ ---
-            {
-                vi: "Hôm nay là Nhật Bản ngày mùng một.",
-                ja: "<span>今日</span>は<span>一日</span>です。",
-                hira: "きょう は ついたち です。",
-                kanji: [{ char: "日", hanviet: "NHẬT", mean: "Ngày / Mặt trời", on: "ニチ", kun: "ひ" }]
-            },
-            {
-                vi: "Thứ Hai đi làm.",
-                ja: "<span>月曜日</span>に<span>働</span>きます。",
-                hira: "げつようび に はたらきます。",
-                kanji: [{ char: "月", hanviet: "NGUYỆT", mean: "Tháng / Mặt trăng", on: "ゲツ", kun: "つき" }]
-            },
-            {
-                vi: "Thứ Ba tôi nấu ăn.",
-                ja: "<span>火曜日</span>に<span>料理</span>をします。",
-                hira: "かようび に りょうり を します。",
-                kanji: [{ char: "火", hanviet: "HỎA", mean: "Lửa", on: "カ", kun: "ひ" }]
-            },
-            {
-                vi: "Thứ Tư uống bia.",
-                ja: "<span>水曜日</span>にビールを<span>飲</span>みます。",
-                hira: "すいようび に ビール を のみます。",
-                kanji: [{ char: "水", hanviet: "THỦY", mean: "Nước", on: "スイ", kun: "みず" }]
-            },
-            {
-                vi: "Thứ Năm đọc sách.",
-                ja: "<span>木曜日</span>に<span>本</span>を<span>読</span>みます。",
-                hira: "もくようび に ほん を よみます。",
-                kanji: [{ char: "木", hanviet: "MỘC", mean: "Cây / Gỗ", on: "モク", kun: "ki" }]
-            },
-            {
-                vi: "Thứ Sáu đi mua sắm.",
-                ja: "<span>金曜日</span>に<span>買</span>い<span>物</span>をします。",
-                hira: "kin'youbi ni kaimono o shimasu.",
-                kanji: [{ char: "金", hanviet: "KIM", mean: "Vàng / Tiền", on: "キン", kun: "kane" }]
-            },
-            {
-                vi: "Thứ Bảy đi chơi.",
-                ja: "<span>土曜日</span>に<span>遊</span>びに行きます。",
-                hira: "doyoubi ni asobi ni ikimasu.",
-                kanji: [{ char: "土", hanviet: "THỔ", mean: "Đất", on: "ド", kun: "tsuchi" }]
-            },
-
-            // --- NHÓM THIÊN NHIÊN ---
-            {
-                vi: "Núi Phú Sĩ rất cao.",
-                ja: "<span>富士山</span>はとても<span>高</span>いです。",
-                hira: "ふじさん は とても たかい です。",
-                kanji: [
-                    { char: "山", hanviet: "SƠN", mean: "Núi", on: "サン", kun: "やま" },
-                    { char: "高", hanviet: "CAO", mean: "Cao / Đắt", on: "コウ", kun: "たか·い" }
-                ]
-            },
-            {
-                vi: "Sông này dài quá.",
-                ja: "この<span>川</span>は<span>長</span>いです。",
-                hira: "この かわ は ながい です。",
-                kanji: [
-                    { char: "川", hanviet: "XUYÊN", mean: "Sông", on: "セン", kun: "かわ" },
-                    { char: "長", hanviet: "TRƯỜNG", mean: "Dài / Trưởng", on: "チョウ", kun: "なが·い" }
-                ]
-            },
-            {
-                vi: "Bầu trời hôm nay rất xanh.",
-                ja: "<span>今日</span>の<span>天</span>気はとても<span>良</span>いです。",
-                hira: "きょう の てんき は とても いい です。",
-                kanji: [{ char: "天", hanviet: "THIÊN", mean: "Trời", on: "テン", kun: "ame" }]
-            },
-            {
-                vi: "Hoa anh đào đã nở.",
-                ja: "<span>桜</span>の<span>花</span>が<span>咲</span>きました。",
-                hira: "さくら の はな が さきました。",
-                kanji: [{ char: "花", hanviet: "HOA", mean: "Hoa", on: "カ", kun: "hana" }]
-            },
-
-            // --- NHÓM ĐỘNG TỪ ---
-            {
-                vi: "Tôi xem tivi mỗi sáng.",
-                ja: "<span>毎朝</span>テレビを<span>見</span>ます。",
-                hira: "まいあさ テレビ を みます。",
-                kanji: [{ char: "見", hanviet: "KIẾN", mean: "Nhìn / Xem", on: "ケン", kun: "み·る" }]
-            },
-            {
-                vi: "Hãy nghe nhạc.",
-                ja: "<span>音楽</span>を<span>聞</span>いてください。",
-                hira: "おんがく を きいて ください。",
-                kanji: [{ char: "聞", hanviet: "VĂN", mean: "Nghe", on: "ブン", kun: "き·く" }]
-            },
-            {
-                vi: "Tôi viết thư bằng bút chì.",
-                ja: "<span>鉛筆</span>で<span>手紙</span>を<span>書</span>きます。",
-                hira: "えんぴつ で てがみ を かきます。",
-                kanji: [{ char: "書", hanviet: "THƯ", mean: "Viết", on: "ショ", kun: "か·く" }]
-            },
-            {
-                vi: "Buổi chiều tôi nghỉ ngơi.",
-                ja: "<span>午後</span><span>休</span>みます。",
-                hira: "ごご やすみます。",
-                kanji: [{ char: "休", hanviet: "HƯU", mean: "Nghỉ ngơi", on: "キュウ", kun: "やす·む" }]
-            },
-            {
-                vi: "Tôi đến từ Việt Nam.",
-                ja: "ベトナムから<span>来</span>ました。",
-                hira: "ベトナム から きました。",
-                kanji: [{ char: "来", hanviet: "LAI", mean: "Đến", on: "ライ", kun: "く·る" }]
-            }
-            // ... (Tiếp tục bổ sung thêm các câu từ danh sách 500 câu của bạn tại đây)
+            { vi: "Viết thư.", ja: "<span>手紙</span>を<span>書</span>きます。", hira: "てがみ を かきます。", kanji: [{ char: "書", hanviet: "THƯ", mean: "Viết", on: "ショ", kun: "か・く" }] }
         ];
+
+        // Ghi chú cho bạn: Bạn có thể thêm các câu hỏi khác bằng cách copy định dạng trên.
+        // Chỉ cần thay đổi vi, ja, hira và mảng kanji tương ứng.
 
         let currentQuiz = null;
         let countCompleted = 0;
@@ -498,6 +317,8 @@
         const progressText = document.getElementById('progress-text');
         const progressBar = document.getElementById('progress-bar');
         const messageBox = document.getElementById('message-box');
+        const imageWrapper = document.getElementById('image-wrapper');
+        const questionImage = document.getElementById('question-image');
 
         function loadRandomQuestion() {
             // Reset UI
@@ -509,14 +330,22 @@
             btnHint.disabled = false;
             btnReveal.disabled = false;
 
-            // Lấy ngẫu nhiên câu hỏi từ mảng QUIZ_POOL
+            // Lấy ngẫu nhiên từ kho
             const randomIndex = Math.floor(Math.random() * QUIZ_POOL.length);
             currentQuiz = QUIZ_POOL[randomIndex];
 
-            // Render dữ liệu
+            // Cập nhật nội dung
             viText.innerText = currentQuiz.vi;
             hiraText.innerText = currentQuiz.hira;
             kanjiText.innerHTML = currentQuiz.ja;
+            
+            // Xử lý ảnh nếu có
+            if (currentQuiz.image) {
+                questionImage.src = currentQuiz.image;
+                imageWrapper.style.display = 'block';
+            } else {
+                imageWrapper.style.display = 'none';
+            }
             
             // Render chi tiết Kanji
             kanjiDetails.innerHTML = '';
